@@ -1,97 +1,67 @@
 import React, { useEffect } from "react";
-import Img1 from "../../assets/women/women.png";
-import Img2 from "../../assets/women/women2.jpg";
-import Img3 from "../../assets/women/women3.jpg";
-import Img4 from "../../assets/women/women4.jpg";
+
 import { FaStar } from "react-icons/fa6";
 import Cart from "../Carts/Cart";
 import {useDispatch, useSelector} from 'react-redux';
-import { addToCart } from "../../features/todo/storeSlice";
+
 import useProduct from "../../Hooks/useProduct";
+import { useState } from "react";
 
-// const ProductsData = [
-//   {
-//     id: 1,
-//     img: Img1,
-//     title: "Women Ethnic",
-//     rating: 5.0,
-//     color: "white",
-//     aosDelay: "0",
-//     qauntity:20,
-//   },
-//   {
-//     id: 2,
-//     img: Img2,
-//     title: "Women western",
-//     rating: 4.5,
-//     color: "Red",
-//     aosDelay: "200",
-//     qauntity:25,
-//   },
-//   {
-//     id: 3,
-//     img: Img3,
-//     title: "Goggles",
-//     rating: 4.7,
-//     color: "brown",
-//     aosDelay: "400",
-//     qauntity:30,
-//   },
-//   {
-//     id: 4,
-//     img: Img4,
-//     title: "Printed T-Shirt",
-//     rating: 4.4,
-//     color: "Yellow",
-//     aosDelay: "600",
-//     qauntity:40,
-//   },
-//   {
-//     id: 5,
-//     img: Img2,
-//     title: "Fashin T-Shirt",
-//     rating: 4.5,
-//     color: "Pink",
-//     aosDelay: "800",
-//     qauntity:50,
-//   },
-// ];
-// useEffect()
+import { addToCart, removeFromCart } from '../../features/todo/storeSlice';
+
 const Products = () => {
-
-  const dispatch=useDispatch();
+  const dispatch = useDispatch();
   useProduct();
+
   const products = useSelector((state) => state.products.items);
+  const cartItems = useSelector((state) => state.cart.cartItems);
+  const [visibleProducts, setVisibleProducts] = useState(5);
+  const productsToShow = products.slice(0, visibleProducts);
+  
+  const handleLoadMore = () => {
+    setVisibleProducts(prev => Math.min(prev + 5, products.length));
+  };
+
+  // Store the ID of the product that was just added
+  const [selectedProductId, setSelectedProductId] = useState(null);
+
   const handleAddToCart = (product) => {
     dispatch(addToCart(product));
+    setSelectedProductId(product.id); // set the selected product
   };
-  
+
+  const handleRemoveFromCart = (id) => {
+    dispatch(removeFromCart(id));
+
+    const cartItem = cartItems.find(item => item.id === id);
+    if (!cartItem || cartItem.quantity <= 1) {
+      // If item is no longer in cart, reset selectedProductId
+      setSelectedProductId(null);
+    }
+  };
+
   return (
     <div className="mt-14 mb-12">
       <div className="container">
-        {/* Header section */}
+        {/* Header */}
         <div className="text-center mb-10 max-w-[600px] mx-auto">
-          <p data-aos="fade-up" className="text-sm text-primary">
-            Top Selling Products for you
-          </p>
-          <h1 data-aos="fade-up" className="text-3xl font-bold">
-            Products
-          </h1>
-          <p data-aos="fade-up" className="text-xs text-gray-400">
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sit
-            asperiores modi Sit asperiores modi
-          </p>
+          <p className="text-sm text-primary">Top Selling Products for you</p>
+          <h1 className="text-3xl font-bold">Products</h1>
+          <p className="text-xs text-gray-400">Check out our awesome range of items!</p>
         </div>
-        {/* Body section */}
-        <div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 place-items-center gap-5">
-            {/* card section */}
-            {products && products.length > 0 ? (
-              products.map((product, index) => (
+
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 place-items-center gap-5">
+          {products && products.length > 0 ? (
+            productsToShow.map((product, index) => {
+              const cartItem = cartItems.find(item => item.id === product.id);
+              const isSelected = selectedProductId === product.id;
+
+              return (
                 <div
-                  data-aos="fade-up"
-                  data-aos-delay={index * 100} // animate each card with delay
                   key={product.id}
+                  data-aos="fade-up"
+                  data-aos-delay={index * 100}
                   className="space-y-3 p-4 shadow-md rounded-lg hover:shadow-lg transition"
                 >
                   <img
@@ -110,30 +80,52 @@ const Products = () => {
                       <span className="text-sm">{product.rating.rate} ({product.rating.count})</span>
                     </div>
 
-                    {/* Add to Cart Button */}
-                    <div className="flex justify-center mt-3">
-                      <button
-                         onClick={() => handleAddToCart(product)}
-                        className="px-3 py-1 bg-primary text-white text-sm rounded-md hover:bg-opacity-90"
-                      >
-                        Add to Cart
-                      </button>
-                    </div>
+                    {/* Add/Remove UI based on selected product ID */}
+                    {isSelected ? (
+                      <div className="flex justify-center items-center gap-3 mt-3">
+                        <button
+                          onClick={() => handleRemoveFromCart(product.id)}
+                          className="px-2 py-1 bg-red-500 text-white text-sm rounded-md hover:bg-red-600"
+                        >
+                          -
+                        </button>
+                        <span className="text-sm font-semibold text-black">
+                          {cartItem?.quantity || 0}
+                        </span>
+                        <button
+                          onClick={() => handleAddToCart(product)}
+                          className="px-2 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600"
+                        >
+                          +
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center mt-3">
+                        <button
+                          onClick={() => handleAddToCart(product)}
+                          className="px-3 py-1 bg-primary text-black bg-white text-sm rounded-md hover:bg-opacity-90"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))
-            ) : (
-              <p className="col-span-full text-center">Loading products...</p>
-            )}
-          </div>
-
-          {/* View All Button */}
-          <div className="flex justify-center mt-10">
-            <button className="cursor-pointer bg-primary text-white py-2 px-6 rounded-md hover:bg-opacity-90">
-              View All
-            </button>
-          </div>
+              );
+            })
+          ) : (
+            <p className="col-span-full text-center">Loading products...</p>
+          )}
         </div>
+        {visibleProducts < products.length && (
+        <div className="text-center">
+          <button 
+            onClick={handleLoadMore} 
+            className="bg-gray-800 text-white py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors font-medium"
+          >
+            Load More Products
+          </button>
+        </div>  )}
       </div>
     </div>
   );

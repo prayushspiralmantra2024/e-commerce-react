@@ -5,6 +5,7 @@ import { FaStar } from "react-icons/fa6";
 
 const Cart = () => {
   const cartItems = useSelector((state) => state.cart.cartItems);
+  
   const dispatch = useDispatch();
 
   const handleAddToCart = (data) => {

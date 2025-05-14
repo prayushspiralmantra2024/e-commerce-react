@@ -72,7 +72,7 @@ const MensWear = () => {
                     <div className="flex justify-center mt-3">
                       <button
                         onClick={() => handleAddToCart(product)}
-                        className="px-3 py-1 bg-primary text-white text-sm rounded-md hover:bg-opacity-90"
+                        className="px-3 py-1 bg-primary text-black bg-white text-sm rounded-md hover:bg-opacity-90"
                       >
                         Add to Cart
                       </button>
